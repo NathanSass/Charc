@@ -7,13 +7,13 @@
                     android:layout_height="match_parent">
 
         <ImageView
-            android:id="@+id/ivAnt"
-            android:layout_width="100px"
-            android:layout_height="100px"
+            android:id="@+id/ivBread"
+            android:layout_width="150px"
+            android:layout_height="150px"
             android:adjustViewBounds="true"
-            android:src="@drawable/ant"
+            android:src="@drawable/bread"
             android:scaleType="centerCrop"
-            android:layout_alignParentBottom="true"/>
+            android:layout_alignParentTop="true"/>
 
     </RelativeLayout>
 </layout>
