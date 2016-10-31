@@ -1,23 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools">
-    <RelativeLayout android:layout_width="match_parent"
+    <RelativeLayout android:id="@+id/rlAnimation"
+        android:layout_width="match_parent"
                     android:background="@android:color/holo_blue_bright"
                     android:layout_height="match_parent">
+
         <ImageView
             android:id="@+id/ivAnt"
-            android:layout_alignParentBottom="true"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
+            android:layout_width="100px"
+            android:layout_height="100px"
             android:adjustViewBounds="true"
-            android:layout_centerHorizontal="true"
             android:src="@drawable/ant"
-            android:scaleType="centerCrop"/>
-        <Button
-            android:id="@+id/btnAnimate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Animate!"
+            android:scaleType="centerCrop"
             android:layout_alignParentBottom="true"/>
 
     </RelativeLayout>

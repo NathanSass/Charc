@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
@@ -24,6 +25,7 @@ import com.nathansass.charc.databinding.FragmentAnimationBinding;
 
 public class AnimationFragment extends Fragment {
     FragmentAnimationBinding binding;
+    float x,y;
 
     @Nullable
     @Override
@@ -39,12 +41,34 @@ public class AnimationFragment extends Fragment {
     }
 
     private void setUpUI() {
-        binding.btnAnimate.setOnClickListener(new View.OnClickListener() {
+        binding.ivAnt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 walkUpScreen();
             }
         });
+
+        binding.rlAnimation.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                addAnNewAntImage(x, y);
+                return false;
+            }
+        });
+
+        binding.rlAnimation.setOnTouchListener(new View.OnTouchListener() {
+
+            @Override
+            public boolean onTouch(View arg0, MotionEvent ev) {
+                if(ev.getAction() == MotionEvent.ACTION_DOWN){
+                    x = ev.getX();
+                    y = ev.getY();
+                }
+                return false;
+            }
+        });
+
+
 
     }
 
@@ -137,7 +161,7 @@ public class AnimationFragment extends Fragment {
                 ObjectAnimator.ofFloat(binding.ivAnt, View.TRANSLATION_Y, -getScreenHeight() + 400);
         moveAhead.setDuration(time);
 
-        AnimatorSet animatorSet = new AnimatorSet();
+        final AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
@@ -147,6 +171,7 @@ public class AnimationFragment extends Fragment {
 
             @Override
             public void onAnimationEnd(Animator animation) {
+                animatorSet.removeAllListeners();
                 animation.cancel(); //stops the ant for wobbling
             }
 
@@ -174,6 +199,28 @@ public class AnimationFragment extends Fragment {
         //animation.setFillAfter(true);
 
         imageView.startAnimation(animation);  // start animation
+    }
+
+    public void replaceImage() {
+        binding.ivAnt.setY(getScreenHeight() - 200);
+    }
+
+    private View addAnNewAntImage(float x, float y) {
+        int antSize = 100;
+        ImageView antImageView = new ImageView(getContext());
+        antImageView.setVisibility(View.VISIBLE);
+        int antImage = getResources().getIdentifier("@drawable/ant", "drawable", getActivity().getPackageName());
+        antImageView.setImageResource(antImage);
+
+        binding.rlAnimation.addView(antImageView);
+        antImageView.getLayoutParams().width = antSize;
+        antImageView.getLayoutParams().height = antSize;
+
+        antImageView.setY(y);
+        antImageView.setX(x);
+
+        return antImageView;
+
     }
 
     private int getScreenHeight() {
