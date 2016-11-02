@@ -4,10 +4,13 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.databinding.DataBindingUtil;
+import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -15,16 +18,20 @@ import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.nathansass.charc.R;
 import com.nathansass.charc.databinding.FragmentAnimationBinding;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 
 public class AnimationFragment extends Fragment {
     FragmentAnimationBinding binding;
     float x,y;
+
+    ArrayList<View> antList;
 
     @Nullable
     @Override
@@ -37,16 +44,19 @@ public class AnimationFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         setUpUI();
+        antList = new ArrayList<>();
     }
 
     private void setUpUI() {
 
         animateBread();
+        removeOffScreenAnts();
 
         binding.rlAnimation.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 View antImage = addAnNewAntImage(x, y);
+                antList.add(antImage);
                 walkUpScreen(antImage);
                 return false;
             }
@@ -61,6 +71,13 @@ public class AnimationFragment extends Fragment {
                     y = ev.getY();
                 }
                 return false;
+            }
+        });
+
+        binding.ivBread.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getContext(), "Clicked", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -106,6 +123,48 @@ public class AnimationFragment extends Fragment {
         });
     }
 
+    private int getYValue(View view){
+        int[] locations = new int[2];
+        view.getLocationOnScreen(locations);
+        int x = locations[0];
+        int y = locations[1];
+
+        return y;
+    }
+
+    private void removeOffScreenAnts() {
+        final android.os.Handler handler = new Handler();
+        Runnable runnable = new Runnable() {
+
+            @Override
+            public void run() {
+                try{
+                    for(View antView : antList) {
+                        int antY = getYValue(antView);
+                        if(antY < 0) { //BUGBUG: Not the best
+                            antList.remove(antView);
+                            binding.rlAnimation.removeView(antView);
+                        }
+
+                        int viewY = getYValue(binding.rlAnimation);
+
+
+
+                        Log.v("DEBUG", "antY: " + antY + "    viewY: " + viewY);
+                    }
+                }
+                catch (Exception e) {
+                    // TODO: handle exception
+                }
+                finally{
+                    handler.postDelayed(this, 500);
+                }
+            }
+        };
+
+        handler.postDelayed(runnable, 1000);
+    }
+
     private void antWobble(View view) {
         int speed = getRandom(120, 225);
         int rotation = getRandom(5,9);
@@ -146,42 +205,17 @@ public class AnimationFragment extends Fragment {
         });
     }
 
-    private void antMoveSideToSide(View view) {
-        int speed = 300;
-        int dist = 5;
-        ObjectAnimator leftShuffle = ObjectAnimator.ofFloat(view, View.TRANSLATION_X, -dist);
-        leftShuffle.setDuration(speed);
-        leftShuffle.setInterpolator(new DecelerateInterpolator());
+    private boolean isViewOverlapping(View firstView, View secondView) {
 
-        ObjectAnimator rightShuffle = ObjectAnimator.ofFloat(view, View.TRANSLATION_X, dist);
-        rightShuffle.setDuration(speed);
-        rightShuffle.setInterpolator(new DecelerateInterpolator());
+        final int[] location = new int[2];
 
-        AnimatorSet animatorSet = new AnimatorSet();
-        animatorSet.playSequentially(leftShuffle, rightShuffle);
-        animatorSet.start();
+        firstView.getLocationInWindow(location);
+        Rect rect1 = new Rect(location[0], location[1],location[0] + firstView.getWidth(), location[1] + firstView.getHeight());
 
-        animatorSet.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animation) {
+        secondView.getLocationInWindow(location);
+        Rect rect2 = new Rect(location[0], location[1],location[0] + secondView.getWidth(), location[1] + secondView.getHeight());
 
-            }
-
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                animation.start();
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animator animation) {
-
-            }
-        });
+        return rect1.intersect(rect2);
     }
 
     private void walkUpScreen(final View view) {
