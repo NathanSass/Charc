@@ -144,6 +144,7 @@ public class AnimationFragment extends Fragment {
                         if(antY < 0) { //BUGBUG: Not the best
                             antList.remove(antView);
                             binding.rlAnimation.removeView(antView);
+                            antView.clearAnimation(); // This may not be doing anything
                         }
 
                         int viewY = getYValue(binding.rlAnimation);
@@ -165,7 +166,7 @@ public class AnimationFragment extends Fragment {
         handler.postDelayed(runnable, 1000);
     }
 
-    private void antWobble(View view) {
+    private void antWobble(final View view) {
         int speed = getRandom(120, 225);
         int rotation = getRandom(5,9);
         ObjectAnimator wobbleLeft =
@@ -190,7 +191,9 @@ public class AnimationFragment extends Fragment {
 
             @Override
             public void onAnimationEnd(Animator animation) {
-                animation.start();
+                if (antList.contains(view)) {
+                    animation.start();
+                }
             }
 
             @Override
