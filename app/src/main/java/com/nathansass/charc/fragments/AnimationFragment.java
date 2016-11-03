@@ -10,7 +10,6 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -18,7 +17,6 @@ import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.nathansass.charc.R;
 import com.nathansass.charc.databinding.FragmentAnimationBinding;
@@ -30,8 +28,10 @@ import java.util.Random;
 public class AnimationFragment extends Fragment {
     FragmentAnimationBinding binding;
     float x,y;
+    private int score = 0;
 
     ArrayList<View> antList;
+    ArrayList<View> antsToDelete;
 
     @Nullable
     @Override
@@ -45,6 +45,11 @@ public class AnimationFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         setUpUI();
         antList = new ArrayList<>();
+        antsToDelete = new ArrayList<>();
+    }
+
+    private void updateScore() {
+        binding.tvScore.setText(score + "");
     }
 
     private void setUpUI() {
@@ -77,10 +82,29 @@ public class AnimationFragment extends Fragment {
         binding.ivBread.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), "Clicked", Toast.LENGTH_SHORT).show();
+                boolean isOverlap;
+                for (View antView: antList) {
+                    isOverlap = isViewOverlapping(v, antView);
+                    if (isOverlap) {
+                        score += 1;
+                        updateScore();
+//                        Toast.makeText(getContext(), "Got one", Toast.LENGTH_SHORT).show();
+                        antsToDelete.add(antView);
+                    }
+                }
+
+                deleteAnts();
             }
         });
 
+    }
+
+    private void deleteAnts() {
+        for (View antView : antsToDelete) {
+            deleteAnt(antView);
+        }
+
+        antsToDelete = new ArrayList<>();
     }
 
     private void animateBread() {
@@ -132,6 +156,12 @@ public class AnimationFragment extends Fragment {
         return y;
     }
 
+    private void deleteAnt(View antView) {
+        antList.remove(antView);
+        binding.rlAnimation.removeView(antView);
+        antView.clearAnimation(); // This may not be doing anything
+    }
+
     private void removeOffScreenAnts() {
         final android.os.Handler handler = new Handler();
         Runnable runnable = new Runnable() {
@@ -142,17 +172,17 @@ public class AnimationFragment extends Fragment {
                     for(View antView : antList) {
                         int antY = getYValue(antView);
                         if(antY < 0) { //BUGBUG: Not the best
-                            antList.remove(antView);
-                            binding.rlAnimation.removeView(antView);
-                            antView.clearAnimation(); // This may not be doing anything
+                           antsToDelete.add(antView);
                         }
 
                         int viewY = getYValue(binding.rlAnimation);
 
 
 
-                        Log.v("DEBUG", "antY: " + antY + "    viewY: " + viewY);
+//                        Log.v("DEBUG", "antY: " + antY + "    viewY: " + viewY);
                     }
+
+                    deleteAnts();
                 }
                 catch (Exception e) {
                     // TODO: handle exception
@@ -160,6 +190,8 @@ public class AnimationFragment extends Fragment {
                 finally{
                     handler.postDelayed(this, 500);
                 }
+
+
             }
         };
 

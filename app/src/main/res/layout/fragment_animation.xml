@@ -15,5 +15,13 @@
             android:scaleType="centerCrop"
             android:layout_alignParentTop="true"/>
 
+        <TextView
+            android:id="@+id/tvScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"/>
+
     </RelativeLayout>
 </layout>
